@@ -1,10 +1,16 @@
 # plvq-svi-interpretability
 Reference code for the study:  "The Impact of Visual Elements in Street View on Plant Landscape Visual Quality: A Quantitative Study Based on Deep Learning, GWPCA, and SHAP"
-Prerequisites
-Our segmentation pipeline is built on MMSegmentation (v1.x). To run the scripts, please:
 
-Install MMSegmentation following their official guide.
+Step 1: Before running, ensure that the mmcv and mmengine libraries are correctly installed. Modify the data root directory and model weight storage paths in the script to match your local environment.
 
-Download the pre-trained weights for SegNeXt from the MMSeg Model Zoo.
+Step 2: This script relies on the timm and optuna libraries. It is recommended to use a GPU to accelerate the Bayesian optimization process when running in --mode optimize. In prediction mode, ensure the model weight filename matches the one defined in the script.
 
-Place the configs folder from the official repo into the root directory of this project (or update the paths in step1_semantic_segmentation.py).
+Step 3: An R environment is required. Please install spatial analysis packages such as GWmodel and sp beforehand. The input Excel data must include X and Y coordinate columns to enable geographically weighted calculations.
+
+Step 4: This script compares eight machine learning algorithms. The script will terminate if libraries such as catboost, xgboost, or lightgbm are missing. Using a conda environment for centralized package management is highly recommended.
+
+Step 5: SHAP analysis is computationally intensive. When generating dependency plots, the script automatically calculates LOWESS smoothing curves and SHAP-zero crossing points. Ensure sufficient memory is available when processing large datasets.
+
+Step 6: This step requires the installation of the PyALE library. The generated ALE 1D plots include 95% confidence intervals and rug plots to indicate sample density.
+
+Step 7: For second-order interaction analysis, the ALEPlot and fields packages must be installed in the R environment. Given the high computational cost of pairwise interactions, consider filtering for core variables of interest.
