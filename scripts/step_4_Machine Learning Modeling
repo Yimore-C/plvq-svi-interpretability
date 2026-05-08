@@ -29,7 +29,6 @@ def get_model(model_name, params):
     return models[model_name]
 
 def objective(trial, model_name, X_train, y_train):
-    """Optuna 目标函数：使用 TPE 搜索超参数"""
     params = {}
     # Definition of the parameter space using Random Forests as an example
     if model_name == "Random Forest":
