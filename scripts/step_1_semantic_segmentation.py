@@ -3,7 +3,6 @@ import mmcv
 import os
 
 def run_segmentation(input_dir, output_dir):
-    # (需要先安装 mmseg)
     config_file = 'configs/segnext/segnext_mscan-l_1xb16-adamw-160k_ade20k-512x512.py'
     checkpoint_file = 'segnext_mscan-l_1x16_512x512_adamw_160k_ade20k_20230209_172055-19b14b63.pth'
     
