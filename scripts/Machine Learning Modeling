@@ -1,0 +1,79 @@
+import os
+import pandas as pd
+import numpy as np
+import optuna
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import (RandomForestRegressor, ExtraTreesRegressor, 
+                              GradientBoostingRegressor)
+from xgboost import XGBRegressor
+from catboost import CatBoostRegressor
+from lightgbm import LGBMRegressor
+from ngboost import NGBoost
+
+plt.rcParams['font.family'] = 'Times New Roman'
+
+def get_model(model_name, params):
+    models = {
+        "Decision Tree": DecisionTreeRegressor(**params),
+        "Extra Trees": ExtraTreesRegressor(**params),
+        "Random Forest": RandomForestRegressor(**params),
+        "Gradient Boosting": GradientBoostingRegressor(**params),
+        "XGBoost": XGBRegressor(**params),
+        "CatBoost": CatBoostRegressor(**params, verbose=0),
+        "LightGBM": LGBMRegressor(**params, verbose=-1),
+        "NGBoost": NGBoost(**params, verbose=False)
+    }
+    return models[model_name]
+
+def objective(trial, model_name, X_train, y_train):
+    """Optuna 目标函数：使用 TPE 搜索超参数"""
+    params = {}
+    # Definition of the parameter space using Random Forests as an example
+    if model_name == "Random Forest":
+        params = {
+            "n_estimators": trial.suggest_int("n_estimators", 50, 300),
+            "max_depth": trial.suggest_int("max_depth", 3, 30),
+            "min_samples_split": trial.suggest_int("min_samples_split", 2, 20),
+            "max_features": trial.suggest_categorical("max_features", ["sqrt", "log2", None])
+        }
+    # You can add the corresponding `trial.suggest` here depending on the model.
+
+    model = get_model(model_name, params)
+    score = cross_val_score(model, X_train, y_train, cv=10, scoring="r2").mean()
+    return score
+
+def run_experiment(data_path, output_dir):
+    df = pd.read_excel(data_path)
+    X = df.drop(columns=["id", "Scores"])
+    y = df["Scores"]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+    model_names = ["Decision Tree", "Extra Trees", "Random Forest", "LightGBM", 
+                   "NGBoost", "Gradient Boosting", "CatBoost", "XGBoost"]
+    
+    performance_results = []
+
+    for name in model_names:
+        print(f"--- Optimizing {name} ---")
+        study = optuna.create_study(direction="maximize", sampler=optuna.samplers.TPESampler())
+        study.optimize(lambda trial: objective(trial, name, X_train, y_train), n_trials=30)
+        
+        best_model = get_model(name, study.best_params)
+        best_model.fit(X_train, y_train)
+        
+        y_pred = best_model.predict(X_test)
+        res = {
+            "Model": name,
+            "R2": r2_score(y_test, y_pred),
+            "MAE": mean_absolute_error(y_test, y_pred),
+            "RMSE": np.sqrt(mean_squared_error(y_test, y_pred))
+        }
+        performance_results.append(res)
+
+    results_df = pd.DataFrame(performance_results)
+    results_df.to_csv(os.path.join(output_dir, "model_comparison.csv"), index=False)
+    print(" Multi-model comparison completed.")
