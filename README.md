@@ -13,4 +13,4 @@ Step 5: SHAP analysis is computationally intensive. When generating dependency p
 
 Step 6: This step requires the installation of the PyALE library. The generated ALE 1D plots include 95% confidence intervals and rug plots to indicate sample density.
 
-Step 7: For second-order interaction analysis, the ALEPlot and fields packages must be installed in the R environment. Given the high computational cost of pairwise interactions, consider filtering for core variables of interest.
+Step 7: For second-order interaction analysis, the ALEPlot and fields packages must be installed in the R environment. 
